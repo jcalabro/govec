@@ -40,3 +40,7 @@ func L2DistanceSlow(a, b []BF16) float32 {
 
 	return float32(math.Sqrt(float64(final)))
 }
+
+func (bf BF16) Float32() float32 {
+	return BF16toFloat32(bf)
+}
