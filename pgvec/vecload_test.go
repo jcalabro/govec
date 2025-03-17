@@ -9,7 +9,18 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	govec "github.com/whyrusleeping/govec"
 )
+
+func normalDotProduct(a, b []float32) float32 {
+	var sum float32
+	for i := 0; i < len(a); i++ {
+		sum += a[i] * b[i]
+	}
+
+	return sum
+}
 
 func TestLoadVector(t *testing.T) {
 	config, err := pgxpool.ParseConfig(os.Getenv("TEST_DATABASE_URL"))
@@ -51,4 +62,9 @@ func TestLoadVector(t *testing.T) {
 	}
 
 	fmt.Println(out.ToFloat32())
+
+	fres := govec.DotProductFastFP16(out.vals, out.vals)
+	sres := normalDotProduct(out.ToFloat32(), out.ToFloat32())
+
+	fmt.Println(fres, sres)
 }

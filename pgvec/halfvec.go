@@ -11,19 +11,17 @@ import (
 )
 
 type HalfVector struct {
-	data   []byte
-	length int
+	vals []float16.Float16
 }
 
 // NewFromFloat32 creates a new HalfVector from a slice of float32 values
 func NewFromFloat32(values []float32) *HalfVector {
-	buf := make([]byte, 4+(2*len(values)))
-	binary.BigEndian.PutUint16(buf[:2], uint16(len(values)))
+	buf := make([]float16.Float16, len(values))
 	for i, v := range values {
-		fv := float16.Fromfloat32(v)
-		binary.BigEndian.PutUint16(buf[4+(i*2):6+(i*2)], uint16(fv))
+		buf[i] = float16.Fromfloat32(v)
 	}
-	return &HalfVector{data: buf, length: len(values)}
+
+	return &HalfVector{vals: buf}
 }
 
 func bytes16ToFloat32(b []byte) float32 {
@@ -33,16 +31,22 @@ func bytes16ToFloat32(b []byte) float32 {
 
 // ToFloat32 converts the HalfVector back to float32 values
 func (hv *HalfVector) ToFloat32() []float32 {
-	floatValues := make([]float32, hv.length)
-	for i := 0; i < hv.length; i++ {
-		start := 4 + (i * 2)
-		floatValues[i] = bytes16ToFloat32(hv.data[start : start+2])
+	floatValues := make([]float32, len(hv.vals))
+	for i, v := range hv.vals {
+		floatValues[i] = float16.Float16(v).Float32()
 	}
 	return floatValues
 }
 
 func (hv *HalfVector) EncodeBinary() ([]byte, error) {
-	return hv.data, nil
+	buf := make([]byte, 4+(2*len(hv.vals)))
+
+	binary.BigEndian.PutUint16(buf[:2], uint16(len(hv.vals)))
+	for i, v := range hv.vals {
+		start := 4 + (2 * i)
+		binary.BigEndian.PutUint16(buf[start:start+2], uint16(v))
+	}
+	return buf, nil
 }
 
 func (hv *HalfVector) Scan(value interface{}) error {
@@ -56,8 +60,7 @@ func (hv *HalfVector) Scan(value interface{}) error {
 		return err
 	}
 
-	hv.data = ohv.data
-	hv.length = ohv.length
+	hv.vals = ohv.vals
 	return nil
 }
 
@@ -76,7 +79,14 @@ func DecodeBinary(data []byte) (*HalfVector, error) {
 		return nil, fmt.Errorf("body must be 2 bytes per item")
 	}
 
-	return &HalfVector{data: data, length: int(length)}, nil
+	vals := make([]float16.Float16, length)
+
+	for i := 0; i < int(length); i++ {
+		start := 4 + (i * 2)
+		vals[i] = float16.Float16(binary.BigEndian.Uint16(data[start : start+2]))
+	}
+
+	return &HalfVector{vals: vals}, nil
 }
 
 type VectorCodec struct{}

@@ -1,4 +1,4 @@
-module github.com/whyrusleeping/govecs
+module github.com/whyrusleeping/govec
 
 go 1.23.4
 
