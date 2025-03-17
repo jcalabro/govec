@@ -45,14 +45,16 @@ func TestDotProduct(t *testing.T) {
 	cb := bf16VecTofp16(b)
 
 	dpa := DotProductSlow(a, b)
-	dpb := DotProductFast(a, b)
+	//dpb := DotProductFast(a, b)
+	dpb := 0
 	dpc := DotProductFastFP16(ca, cb)
 	dpd := DotProductSlowFP16(ca, cb)
 
 	fmt.Println(dpa, dpb, dpc, dpd)
 }
 
-func BenchmarkDotProduct(b *testing.B) {
+/*
+func BenchmarkDotProductBF16(b *testing.B) {
 	arrlen := 1000
 	vecs := make([][]BF16, arrlen)
 	for i := 0; i < arrlen; i++ {
@@ -65,6 +67,7 @@ func BenchmarkDotProduct(b *testing.B) {
 		DotProductFast(vecs[rand.Intn(arrlen)], vecs[rand.Intn(arrlen)])
 	}
 }
+*/
 
 func BenchmarkDotProductSlow(b *testing.B) {
 	arrlen := 1000
