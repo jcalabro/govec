@@ -47,8 +47,9 @@ func TestDotProduct(t *testing.T) {
 	dpa := DotProductSlow(a, b)
 	dpb := DotProductFast(a, b)
 	dpc := DotProductFastFP16(ca, cb)
+	dpd := DotProductSlowFP16(ca, cb)
 
-	fmt.Println(dpa, dpb, dpc)
+	fmt.Println(dpa, dpb, dpc, dpd)
 }
 
 func BenchmarkDotProduct(b *testing.B) {

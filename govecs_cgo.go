@@ -81,3 +81,11 @@ func DotProductFastFP16(a, b []float16.Float16) float32 {
 	result := C.dot_product_avx_fp16_conv(aPtr, bPtr, C.size_t(len(a)))
 	return float32(result)
 }
+
+func DotProductFastFP16_rawBuffer(a, b []byte) float32 {
+	aPtr := (*C.uint16_t)(unsafe.Pointer(&a[0]))
+	bPtr := (*C.uint16_t)(unsafe.Pointer(&b[0]))
+
+	result := C.dot_product_avx_fp16_conv(aPtr, bPtr, C.size_t(len(a)/2))
+	return float32(result)
+}

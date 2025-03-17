@@ -3,6 +3,8 @@ package govec
 import (
 	"math"
 	"unsafe"
+
+	"github.com/x448/float16"
 )
 
 type BF16 uint16
@@ -15,6 +17,19 @@ func DotProductSlow(a, b []BF16) float32 {
 	var sum float32
 	for i := 0; i < len(a); i++ {
 		sum += (BF16toFloat32(a[i]) * BF16toFloat32(b[i]))
+	}
+
+	return sum
+}
+
+func DotProductSlowFP16(a, b []float16.Float16) float32 {
+	if len(a) != len(b) {
+		panic("no")
+	}
+
+	var sum float32
+	for i := 0; i < len(a); i++ {
+		sum += (a[i].Float32() * b[i].Float32())
 	}
 
 	return sum
