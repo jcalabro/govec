@@ -10,8 +10,6 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
-
-	govec "github.com/whyrusleeping/govec"
 )
 
 func randHalfVec(size int) *HalfVector {
@@ -69,6 +67,17 @@ func TestLoadVector(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	rvec := randHalfVec(512)
+
+	query := `INSERT INTO embeds (embed) VALUES (@embed)`
+	args := pgx.NamedArgs{
+		"embed": rvec,
+	}
+	_, err = pgxpool.Exec(ctx, query, args)
+	if err != nil {
+		t.Fatal("unable to insert row: ", err)
+	}
+
 	rows, err := pgxpool.Query(ctx, "select embed from embeds where id = 1")
 	if err != nil {
 		t.Fatal(err)
@@ -85,12 +94,17 @@ func TestLoadVector(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	if !out.Equals(rvec) {
+		t.Fatal("output vector doesnt match")
+	}
 	fmt.Println(out.ToFloat32())
 
-	fres := govec.DotProductFastFP16(out.vals, out.vals)
-	sres := normalDotProduct(out.ToFloat32(), out.ToFloat32())
+	/*
+		fres := govec.DotProductFastFP16(out.vals, out.vals)
+		sres := normalDotProduct(out.ToFloat32(), out.ToFloat32())
 
-	fmt.Println(fres, sres)
+		fmt.Println(fres, sres)
 
-	_, _ = pgxpool.Exec(ctx, "DROP TABLE embeds")
+		_, _ = pgxpool.Exec(ctx, "DROP TABLE embeds")
+	*/
 }

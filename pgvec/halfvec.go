@@ -18,6 +18,11 @@ func GetHalfVecOid(ctx context.Context, dbstr string) (uint32, error) {
 	}
 	defer con.Close(ctx)
 
+	_, err = con.Exec(ctx, "CREATE EXTENSION IF NOT EXISTS vector")
+	if err != nil {
+		return 0, err
+	}
+
 	rows, err := con.Query(ctx, "select to_regtype('halfvec')::oid")
 	if err != nil {
 		return 0, err
@@ -67,6 +72,15 @@ func (hv *HalfVector) ToFloat32() []float32 {
 
 func (hv *HalfVector) Raw() []float16.Float16 {
 	return hv.vals
+}
+
+func (hv *HalfVector) Equals(other *HalfVector) bool {
+	for i, v := range hv.vals {
+		if other.vals[i] != v {
+			return false
+		}
+	}
+	return true
 }
 
 func (hv *HalfVector) EncodeBinary() ([]byte, error) {
