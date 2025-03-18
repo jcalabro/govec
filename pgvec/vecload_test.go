@@ -3,6 +3,7 @@ package pgvec
 import (
 	"context"
 	"fmt"
+	"math/rand/v2"
 	"os"
 	"testing"
 
@@ -12,6 +13,15 @@ import (
 
 	govec "github.com/whyrusleeping/govec"
 )
+
+func randHalfVec(size int) *HalfVector {
+	var buf []float32
+	for i := 0; i < size; i++ {
+		buf = append(buf, rand.Float32())
+	}
+
+	return NewFromFloat32(buf)
+}
 
 func normalDotProduct(a, b []float32) float32 {
 	var sum float32
@@ -23,14 +33,18 @@ func normalDotProduct(a, b []float32) float32 {
 }
 
 func TestLoadVector(t *testing.T) {
-	config, err := pgxpool.ParseConfig(os.Getenv("TEST_DATABASE_URL"))
+	dburl := os.Getenv("TEST_DATABASE_URL")
+	config, err := pgxpool.ParseConfig(dburl)
 	if err != nil {
 		t.Fatal("Unable to parse pool config: ", err)
 	}
 
 	ctx := context.TODO()
 
-	vectorOID := uint32(616049)
+	vectorOID, err := GetHalfVecOid(ctx, dburl)
+	if err != nil {
+		t.Fatal(err)
+	}
 	config.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
 		conn.TypeMap().RegisterType(&pgtype.Type{
 			Name:  "halfvec",

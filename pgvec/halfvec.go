@@ -1,14 +1,41 @@
 package pgvec
 
 import (
+	"context"
 	"database/sql/driver"
 	"encoding/binary"
-	"errors"
 	"fmt"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/x448/float16"
 )
+
+func GetHalfVecOid(ctx context.Context, dbstr string) (uint32, error) {
+	con, err := pgx.Connect(ctx, dbstr)
+	if err != nil {
+		return 0, err
+	}
+	defer con.Close(ctx)
+
+	rows, err := con.Query(ctx, "select to_regtype('halfvec')::oid")
+	if err != nil {
+		return 0, err
+	}
+
+	defer rows.Close()
+
+	if !rows.Next() {
+		return 0, fmt.Errorf("failed to find halfvec type")
+	}
+
+	var outval uint32
+	if err := rows.Scan(&outval); err != nil {
+		return 0, err
+	}
+
+	return outval, nil
+}
 
 type HalfVector struct {
 	vals []float16.Float16
@@ -56,7 +83,7 @@ func (hv *HalfVector) EncodeBinary() ([]byte, error) {
 func (hv *HalfVector) Scan(value interface{}) error {
 	valueBytes, ok := value.([]byte)
 	if !ok {
-		return errors.New("unable to convert value to bytes")
+		return fmt.Errorf("unable to convert value to bytes (got %T)", value)
 	}
 
 	ohv, err := DecodeBinary(valueBytes)
