@@ -45,7 +45,17 @@ func TestLoadVector(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rows, err := pgxpool.Query(ctx, "select embedding from post_embeddings where post = 1184219013")
+	_, _ = pgxpool.Exec(ctx, "DROP TABLE embeds")
+	_, _ = pgxpool.Exec(ctx, "CREATE EXTENSION vector")
+	_, err = pgxpool.Exec(ctx, `CREATE TABLE embeds (
+    				id SERIAL PRIMARY KEY,
+    				embed halfvec(512)
+			)`)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rows, err := pgxpool.Query(ctx, "select embed from embeds where id = 1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -67,4 +77,6 @@ func TestLoadVector(t *testing.T) {
 	sres := normalDotProduct(out.ToFloat32(), out.ToFloat32())
 
 	fmt.Println(fres, sres)
+
+	_, _ = pgxpool.Exec(ctx, "DROP TABLE embeds")
 }

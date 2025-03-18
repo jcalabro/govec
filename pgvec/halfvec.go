@@ -38,6 +38,10 @@ func (hv *HalfVector) ToFloat32() []float32 {
 	return floatValues
 }
 
+func (hv *HalfVector) Raw() []float16.Float16 {
+	return hv.vals
+}
+
 func (hv *HalfVector) EncodeBinary() ([]byte, error) {
 	buf := make([]byte, 4+(2*len(hv.vals)))
 
