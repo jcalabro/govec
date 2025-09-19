@@ -26,6 +26,7 @@ float fallback_accum(const float16x8_t v) {
 }
 
 // Function to compute the dot product of two float16 arrays using ARM NEON intrinsics
+__attribute__((target("fullfp16")))
 float dot_product_arm_fp16(const float16_t* a, const float16_t* b, size_t n) {
     // Ensure n is a multiple of 8 (NEON can process 8 float16 values at once)
     size_t aligned_n = (n / 8) * 8;
