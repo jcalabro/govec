@@ -58,25 +58,6 @@ float dot_product_avx_fp16_conv(const uint16_t* a, const uint16_t* b, size_t n) 
 
     return sum;
 }
-
-void sum_fp16_vectors_conv(const uint16_t* a, const uint16_t* b, uint16_t* out, size_t n) {
-    size_t aligned_n = (n / 16) * 16;
-
-    for (size_t i = 0; i < aligned_n; i += 16) {
-        __m256i aval = *((__m256i*)&a[i]);
-        __m256i bval = *((__m256i*)&b[i]);
-
-	__m512 upconva = _mm512_cvtph_ps(aval);
-	__m512 upconvb = _mm512_cvtph_ps(bval);
-
-	__m512 sumval = _mm512_add_ps(upconva, upconvb);
-	*((_m256i*)&out[i]) = _mm512_cvtps_ph(sumval, _MM_FROUND_TO_POS_INF |_MM_FROUND_NO_EXC);
-    }
-
-    for (size_t i = aligned_n; i < n; i++) {
-	    out[i] = a[i] + b[i];
-    }
-}
 */
 import "C"
 import (
@@ -107,12 +88,4 @@ func DotProductFastFP16_rawBuffer(a, b []byte) float32 {
 
 	result := C.dot_product_avx_fp16_conv(aPtr, bPtr, C.size_t(len(a)/2))
 	return float32(result)
-}
-
-func SumFP16Vecs(a, b, out []float16.Float16) {
-	aPtr := (*C.uint16_t)(unsafe.Pointer(&a[0]))
-	bPtr := (*C.uint16_t)(unsafe.Pointer(&b[0]))
-	outPtr := (*C.uint16_t)(unsafe.Pointer(&out[0]))
-
-	C.sum_fp16_vectors_conv(aPtr, bPtr, outPtr)
 }
